@@ -1614,9 +1614,9 @@ Message.prototype.reject = function (requeue){
       });
 };
 
-Message.prototype.nack = function (requeue, multiple){
+Message.prototype.nack = function (deliveryTag, requeue, multiple){
   this.queue.connection._sendMethod(this.queue.channel, methods.basicNack,
-      { deliveryTag: this.deliveryTag
+      { deliveryTag: deliveryTag || this.deliveryTag
       , requeue: requeue ? true : false
       , multiple: multiple ? true : false
       });
@@ -1887,10 +1887,10 @@ Queue.prototype.subscribe = function (/* options, messageListener */) {
 Queue.prototype.subscribeJSON = Queue.prototype.subscribe;
 
 /* Acknowledges the last message */
-Queue.prototype.shift = function (reject, requeue, multiple) {
+Queue.prototype.shift = function (deliveryTag, reject, requeue, multiple) {
   if (this._lastMessage) {
     if (reject) {
-      this._lastMessage.nack(requeue ? true : false, multiple ? true : false);
+      this._lastMessage.nack(deliveryTag, requeue ? true : false, multiple ? true : false);
       //this._lastMessage.reject(requeue ? true : false);
     } else {
       this._lastMessage.acknowledge();
