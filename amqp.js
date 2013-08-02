@@ -1614,6 +1614,14 @@ Message.prototype.reject = function (requeue){
       });
 };
 
+Message.prototype.nack = function (requeue, multiple){
+  this.queue.connection._sendMethod(this.queue.channel, methods.basicNack,
+      { deliveryTag: this.deliveryTag
+      , requeue: requeue ? true : false
+      , multiple: multiple ? true : false
+      });
+};
+
 // This class is not exposed to the user. Queue and Exchange are subclasses
 // of Channel. This just provides a task queue.
 function Channel (connection, channel) {
@@ -1879,10 +1887,11 @@ Queue.prototype.subscribe = function (/* options, messageListener */) {
 Queue.prototype.subscribeJSON = Queue.prototype.subscribe;
 
 /* Acknowledges the last message */
-Queue.prototype.shift = function (reject, requeue) {
+Queue.prototype.shift = function (reject, requeue, multiple) {
   if (this._lastMessage) {
     if (reject) {
-      this._lastMessage.reject(requeue ? true : false);
+      this._lastMessage.nack(requeue ? true : false, multiple ? true : false);
+      //this._lastMessage.reject(requeue ? true : false);
     } else {
       this._lastMessage.acknowledge();
     } 
